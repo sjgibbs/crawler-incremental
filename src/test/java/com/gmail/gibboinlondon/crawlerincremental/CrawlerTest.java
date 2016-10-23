@@ -3,6 +3,7 @@ package com.gmail.gibboinlondon.crawlerincremental;
 import com.gmail.gibboinlondon.crawlerincremental.crawler.Crawler;
 import com.gmail.gibboinlondon.crawlerincremental.crawler.Fetcher;
 import com.gmail.gibboinlondon.crawlerincremental.crawler.FetchingException;
+import com.gmail.gibboinlondon.crawlerincremental.sitemap.Node;
 import com.gmail.gibboinlondon.crawlerincremental.sitemap.Sitemap;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -18,10 +19,14 @@ import java.util.List;
 
 import static com.gmail.gibboinlondon.crawlerincremental.Examples.*;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,8 +76,16 @@ public class CrawlerTest
 	}
 
 	@Test(timeout = 5000L)
-	public void shouldReportOutboundLinksFromSubsequentPagesToSiteMap() {
-		fail();
+	public void shouldReportOutboundLinksFromSubsequentPagesToSiteMap() throws FetchingException {
+		when(fetcher.fetch(EXAMPLE_PAGE_B)).thenReturn(new FetchedPage(EXAMPLE_PAGE_B, asList(EXAMPLE_PAGE_C)));
+		when(fetcher.fetch(EXAMPLE_PAGE_C)).thenReturn(new FetchedPage(EXAMPLE_PAGE_C, asList(EXAMPLE_PAGE_A)));
+
+		startCrawling();
+
+		Node nodeC = sitemap.nodes().get(EXAMPLE_PAGE_C);
+
+		assertNotNull(nodeC);
+		assertThat(nodeC.getOutbound(), hasItem(EXAMPLE_PAGE_A));
 	}
 
 	@Test(timeout = 5000L)
@@ -87,7 +100,8 @@ public class CrawlerTest
 	@Test(timeout = 5000L)
 	public void shouldCrawlToOutboundLinksFromSubsequentPages() throws FetchingException {
 
-		when(fetcher.fetch(EXAMPLE_PAGE_B)).thenReturn(new FetchedPage(EXAMPLE_PAGE_B, asList(EXAMPLE_PAGE_C)));
+		when(fetcher.fetch(EXAMPLE_PAGE_B)).thenReturn(new FetchedPage(EXAMPLE_PAGE_B, singletonList(EXAMPLE_PAGE_C)));
+		when(fetcher.fetch(EXAMPLE_PAGE_C)).thenReturn(new FetchedPage(EXAMPLE_PAGE_C, noLinks()));
 
 		startCrawling();
 
@@ -96,13 +110,26 @@ public class CrawlerTest
 	}
 
 	@Test(timeout = 5000L)
-	public void shouldNotCrawlToExternalLinks() {
-		fail();
+	public void shouldNotCrawlToExternalLinks() throws FetchingException {
+		when(fetcher.fetch(EXAMPLE_PAGE_B)).thenReturn(new FetchedPage(EXAMPLE_PAGE_B, singletonList(TWITTER_EXAMPLE)));
+
+		startCrawling();
+
+		verify(fetcher, never()).fetch(TWITTER_EXAMPLE);
+
+		assertThat(sitemap.nodes().get(TWITTER_EXAMPLE), is(Node.NOT_FETCHED));
+
 	}
 
 	@Test(timeout = 5000L)
-	public void shouldNotStopIfThereIsAProblemGettingThePage() {
-		fail();
+	public void shouldNotStopIfThereIsAProblemGettingThePage() throws FetchingException {
+		when(fetcher.fetch(EXAMPLE_PAGE_B)).thenThrow(FetchingException.class);
+
+		startCrawling();
+
+		assertThat(sitemap.nodes(),hasKey(EXAMPLE_PAGE_B));
+		assertThat(sitemap.nodes().get(EXAMPLE_PAGE_B),is(Node.NOT_FETCHED));
+
 	}
 
 	@Test @Ignore

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,9 +56,27 @@ public class Crawler
 
 	}
 
-	private void crawl(URI url) throws FetchingException {
-		FetchedPage fetchedPage = fetcher.fetch(url);
+	private void crawl(URI uri) throws FetchingException {
+		FetchedPage fetchedPage = fetcher.fetch(uri);
+		if(fetchedPage==null) {
+			throw new NullPointerException("fetchedPage was null. uri="+ uri.toString());
+		}
 		sitemap.addNodes(fetchedPage);
-		queue.addAll(fetchedPage.getOutboundLinks());
+
+		List<URI> linksToCrawl = removeExternals(fetchedPage);
+
+		queue.addAll(linksToCrawl);
+	}
+
+	private List<URI> removeExternals(FetchedPage fetchedPage) {
+		List<URI> linksToCrawl = new ArrayList<URI>(fetchedPage.getOutboundLinks());
+		Iterator<URI> it = linksToCrawl.iterator();
+		while (it.hasNext()) {
+			URI candidateUri = it.next();
+			if(!candidateUri.getAuthority().equalsIgnoreCase(startPage.getAuthority())) {
+				it.remove();
+			}
+		}
+		return linksToCrawl;
 	}
 }

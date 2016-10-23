@@ -24,9 +24,6 @@ public class Sitemap {
 	}
 
 	public void addNodes(FetchedPage fetchedPage) {
-		if(fetchedPage==null) {
-			throw new NullPointerException("fetchedPage");
-		}
 		Node node = new Node(fetchedPage.getFetchedUri());
 		for(URI url : fetchedPage.getOutboundLinks()) {
 			node.addOutbound(url);

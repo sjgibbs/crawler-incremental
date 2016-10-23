@@ -18,4 +18,6 @@ public class Examples {
 	public static final URI EXAMPLE_PAGE_C = EXAMPLE_URI.resolve("/c.html");
 
 	public static final List<URI> EXAMPLE_LINKS = asList(EXAMPLE_PAGE_A, EXAMPLE_PAGE_B); // not C
+
+	public static final URI TWITTER_EXAMPLE = URI.create("http://twitter.com/Example");
 }
