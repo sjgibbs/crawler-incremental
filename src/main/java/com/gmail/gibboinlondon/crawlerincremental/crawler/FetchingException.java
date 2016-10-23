@@ -1,4 +1,4 @@
-package com.gmail.gibboinlondon.crawlerincremental;
+package com.gmail.gibboinlondon.crawlerincremental.crawler;
 
 /**
  * Represents any of a very broad variety of problems that may occur such as policy violations (the file is too big)

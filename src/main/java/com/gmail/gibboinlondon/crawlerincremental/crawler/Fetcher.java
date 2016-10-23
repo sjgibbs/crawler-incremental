@@ -1,4 +1,6 @@
-package com.gmail.gibboinlondon.crawlerincremental;
+package com.gmail.gibboinlondon.crawlerincremental.crawler;
+
+import com.gmail.gibboinlondon.crawlerincremental.FetchedPage;
 
 import java.net.URI;
 
